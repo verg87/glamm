@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 function PTSRegex(pattern) {
     const pythonSyntax = {
         "group name": [/\(\?P<[^>]+>/g, ""],
-        "possessive quantifiers": [/(\?\+|\*\+|\+)\+/g, ""],
+        "possessive quantifiers": [/.(\?|\*|\+)\+/g, ""],
         "possessive braces": [/\{\d+\s*,\s*\d+\}\+/g, ""],
         "non capturing group": [/\(\?\.\.\.\)/g, ""],
         "beginning of the string": [/\\A/g, "^"],
@@ -21,8 +21,8 @@ function PTSRegex(pattern) {
                 replacement = replaceGroupName(fullMatch);
             if (type === "possessive braces")
                 replacement = replacePossessiveBraces(fullMatch);
-            // if (type === "possessive quantifiers")
-            //     replacement = replacePossessiveQuantifiers(fullMatch);
+            if (type === "possessive quantifiers")
+                replacement = replacePossessiveQuantifiers(fullMatch);
             console.log(fullMatch);
             removals.push({
                 position: match.index,
@@ -35,7 +35,7 @@ function PTSRegex(pattern) {
     }
     return { pattern, removals };
 }
-const example = PTSRegex("a{3,  5}+aa");
+const example = PTSRegex("b?+b");
 console.log(example);
 function replaceGroupName(pattern) {
     const pTag = pattern.indexOf("P");
@@ -49,10 +49,14 @@ function replacePossessiveBraces(pattern) {
     return pattern;
 }
 function replacePossessiveQuantifiers(pattern) {
-    // For now assume pattern is always *+
-    // a*+ should grab all the a's avaliable, in the example: "bla bla aaaa xx", it should match all a's
-    // const lowestAmount = 
+    const char = pattern[0];
+    const quantifierType = pattern[1];
+    console.log(pattern);
+    if (quantifierType === "*")
+        return `${char}*(${char}*)(?!\\1${char}+)\\1`;
+    else if (quantifierType === "?")
+        return `${char}`;
+    // if quantifier type is +
+    return `(?=(${char}+))(?!\\1${char}+)\\1`;
 }
-// const example = replacePossessiveBraces("a{3, 5}+aa");
-// console.log(example);
 //# sourceMappingURL=compiler.js.map

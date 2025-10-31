@@ -13,7 +13,7 @@ interface Removals {
 function PTSRegex(pattern: string) {
     const pythonSyntax: PythonSyntaxMap = {
         "group name": [/\(\?P<[^>]+>/g, ""],
-        "possessive quantifiers": [/(\?\+|\*\+|\+)\+/g, ""],
+        "possessive quantifiers": [/.(\?|\*|\+)\+/g, ""],
         "possessive braces": [/\{\d+\s*,\s*\d+\}\+/g, ""],
         "non capturing group": [/\(\?\.\.\.\)/g, ""],
         "beginning of the string": [/\\A/g, "^"], 
@@ -35,8 +35,8 @@ function PTSRegex(pattern: string) {
                 replacement = replaceGroupName(fullMatch);
             if (type === "possessive braces")
                 replacement = replacePossessiveBraces(fullMatch);
-            // if (type === "possessive quantifiers")
-            //     replacement = replacePossessiveQuantifiers(fullMatch);
+            if (type === "possessive quantifiers")
+                replacement = replacePossessiveQuantifiers(fullMatch);
 
             console.log(fullMatch);
 
@@ -54,8 +54,8 @@ function PTSRegex(pattern: string) {
     return { pattern, removals };
 }
 
-const example = PTSRegex("a{3,  5}+aa");
-console.log(example);
+// const example = PTSRegex("b?+b");
+// console.log(example);
 
 function replaceGroupName(pattern: string) {
     const pTag = pattern.indexOf("P");
@@ -74,10 +74,14 @@ function replacePossessiveBraces(pattern: string) {
 }
 
 function replacePossessiveQuantifiers(pattern: string) {
-    // For now assume pattern is always *+
-    // a*+ should grab all the a's avaliable, in the example: "bla bla aaaa xx", it should match all a's
-    // const lowestAmount = 
-}
+    const char = pattern[0];
+    const quantifierType = pattern[1];
+    console.log(pattern);
 
-// const example = replacePossessiveBraces("a{3, 5}+aa");
-// console.log(example);
+    if (quantifierType === "*")
+        return `${char}*(${char}*)(?!\\1${char}+)\\1`;
+    else if (quantifierType === "?")
+        return `${char}`
+    // if quantifier type is +
+    return `(?=(${char}+))(?!\\1${char}+)\\1`;
+}
