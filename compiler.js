@@ -2,14 +2,16 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 function PTSRegex(pattern) {
     const pythonSyntax = {
-        "group name": [/\(\?P<[^>]+>/g, ""],
+        "group name": [/\?P<[^>]+>/g, ""], // maybe need to change the [^>] part
+        "group reference": [/\?P=[^\?\+\*\s<>\!]+/g, ""],
         "possessive quantifiers": [/.(\?|\*|\+)\+/g, ""],
         "possessive braces": [/\{\d+\s*,\s*\d+\}\+/g, ""],
-        "non capturing group": [/\(\?\.\.\.\)/g, ""],
+        "inline flags": [/\?[auismLx]+/g, ""],
         "beginning of the string": [/\\A/g, "^"],
         "end of the string": [/\\(Z|z)/g, "$"],
     };
     const removals = [];
+    const flags = [];
     for (const [type, info] of Object.entries(pythonSyntax)) {
         let [regex, replacement] = info;
         let match;
@@ -19,10 +21,16 @@ function PTSRegex(pattern) {
             const fullMatch = match[0];
             if (type === "group name")
                 replacement = replaceGroupName(fullMatch);
+            if (type === "group reference")
+                replacement = replaceGroupReference(fullMatch);
             if (type === "possessive braces")
                 replacement = replacePossessiveBraces(fullMatch);
             if (type === "possessive quantifiers")
                 replacement = replacePossessiveQuantifiers(fullMatch);
+            if (type === "inline flags") {
+                flags.push(...getFlags(fullMatch));
+                replacement = "";
+            }
             console.log(fullMatch);
             removals.push({
                 position: match.index,
@@ -33,13 +41,19 @@ function PTSRegex(pattern) {
             regex.lastIndex = match.index + replacement.length;
         }
     }
-    return { pattern, removals };
+    const regex = new RegExp(pattern, [...new Set(flags)].join());
+    return { regex, removals };
 }
-const example = PTSRegex("b?+b");
+const example = PTSRegex("(?P=username)");
 console.log(example);
 function replaceGroupName(pattern) {
     const pTag = pattern.indexOf("P");
     return pattern.slice(0, pTag) + pattern.slice(pTag + 1, pattern.length + 1);
+}
+function replaceGroupReference(pattern) {
+    const questionSign = pattern.indexOf("?");
+    pattern = pattern.slice(0, questionSign) + pattern.slice(questionSign + 3, pattern.length + 1);
+    return `\\k<${pattern}>`;
 }
 function replacePossessiveBraces(pattern) {
     const plusSign = pattern.indexOf("+");
@@ -51,12 +65,18 @@ function replacePossessiveBraces(pattern) {
 function replacePossessiveQuantifiers(pattern) {
     const char = pattern[0];
     const quantifierType = pattern[1];
-    console.log(pattern);
     if (quantifierType === "*")
         return `${char}*(${char}*)(?!\\1${char}+)\\1`;
     else if (quantifierType === "?")
         return `${char}`;
     // if quantifier type is +
     return `(?=(${char}+))(?!\\1${char}+)\\1`;
+}
+function getFlags(pattern) {
+    // Need to somehow differentiate the flag signs and simple characters
+    const flags = pattern.match(/[auismLx]/g)
+        ?.filter((flag) => !["a", "L", "x"].includes(flag));
+    // This way we get rid of same flags
+    return [...new Set(flags)];
 }
 //# sourceMappingURL=compiler.js.map
