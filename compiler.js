@@ -1,4 +1,4 @@
-function glamm(pattern) {
+export function glamm(pattern) {
     const pythonSyntax = {
         "group name": /\?P<[^>]+>/g, // maybe need to change the [^>] part
         "group reference": /\?P=[^\?\+\*\s<>\!\)\()]+/g,
@@ -46,8 +46,8 @@ function glamm(pattern) {
     const regex = new RegExp(cleanPattern(pattern), [...new Set(flags)].join(""));
     return { regex, removals };
 }
-const example = glamm("(?ism)");
-console.log(example);
+// const example = glamm("(?P<username>\\w+), (?P=username)@gmail.com");
+// console.log(example);
 function replaceGroupName(pattern) {
     const pTag = pattern.indexOf("P");
     return pattern.slice(0, pTag) + pattern.slice(pTag + 1, pattern.length + 1);
@@ -75,7 +75,6 @@ function replacePossessiveQuantifiers(pattern) {
     return `(?=(${char}+))(?!\\1${char}+)\\1`;
 }
 function getFlags(pattern) {
-    // Need to somehow differentiate the flag signs and simple characters
     const flags = pattern.match(/[auismLx]/g)
         ?.filter((flag) => !["a", "L", "x"].includes(flag));
     // This way we get rid of same flags
@@ -98,5 +97,4 @@ function cleanPattern(pattern) {
     }
     return pattern;
 }
-export {};
 //# sourceMappingURL=compiler.js.map

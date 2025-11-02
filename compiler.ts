@@ -13,7 +13,7 @@ interface GlammOutput {
     removals: Removals[]
 }
 
-function glamm(pattern: string): GlammOutput {
+export function glamm(pattern: string): GlammOutput {
     const pythonSyntax: PythonSyntaxMap = {
         "group name": /\?P<[^>]+>/g, // maybe need to change the [^>] part
         "group reference": /\?P=[^\?\+\*\s<>\!\)\()]+/g,
@@ -71,8 +71,8 @@ function glamm(pattern: string): GlammOutput {
     return { regex, removals };
 }
 
-const example = glamm("(?ism)");
-console.log(example);
+// const example = glamm("(?P<username>\\w+), (?P=username)@gmail.com");
+// console.log(example);
 
 function replaceGroupName(pattern: string) {
     const pTag = pattern.indexOf("P");
