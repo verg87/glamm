@@ -1,5 +1,5 @@
 interface PythonSyntaxMap {
-    [type: string]: [RegExp, string];
+    [type: string]: RegExp;
 }
 
 interface Removals {
@@ -8,41 +8,50 @@ interface Removals {
     replaceWith: string
 }
 
-function PTSRegex(pattern: string) {
+interface GlammOutput {
+    regex: RegExp;
+    removals: Removals[]
+}
+
+function glamm(pattern: string): GlammOutput {
     const pythonSyntax: PythonSyntaxMap = {
-        "group name": [/\?P<[^>]+>/g, ""], // maybe need to change the [^>] part
-        "group reference": [/\?P=[^\?\+\*\s<>\!]+/g, ""],
-        "possessive quantifiers": [/.(\?|\*|\+)\+/g, ""],
-        "possessive braces": [/\{\d+\s*,\s*\d+\}\+/g, ""],
-        "inline flags": [/\?[auismLx]+/g, ""],
-        "beginning of the string": [/\\A/g, "^"], 
-        "end of the string": [/\\(Z|z)/g, "$"], 
+        "group name": /\?P<[^>]+>/g, // maybe need to change the [^>] part
+        "group reference": /\?P=[^\?\+\*\s<>\!\)\()]+/g,
+        "possessive quantifiers": /.(\?|\*|\+)\+/g,
+        "possessive braces": /\{\d+\s*,\s*\d+\}\+/g,
+        "beginning of the string": /\\A/g, 
+        "end of the string": /\\(Z|z)/g, 
+        "inline flags": /\?[auismLx]+/g, 
+        "inline comments": /\?#[^\)]*/g,
     };
 
     const removals: Removals[] = [];
     const flags: string[] = [];
 
-    for (const [type, info] of Object.entries(pythonSyntax)) {
-        let [regex, replacement] = info;
-
+    for (const [type, regex] of Object.entries(pythonSyntax)) {
+        let replacement;
         let match;
 
         while ((match = regex.exec(pattern))) {
             if (match.index === undefined) continue;
             const fullMatch = match[0];
+            replacement = "";
 
             if (type === "group name")
                 replacement = replaceGroupName(fullMatch);
-            if (type === "group reference")
+            else if (type === "group reference")
                 replacement = replaceGroupReference(fullMatch);
-            if (type === "possessive braces")
+            else if (type === "possessive braces")
                 replacement = replacePossessiveBraces(fullMatch);
-            if (type === "possessive quantifiers")
+            else if (type === "possessive quantifiers")
                 replacement = replacePossessiveQuantifiers(fullMatch);
-            if (type === "inline flags") {
+            else if (type.includes("beginning"))
+                replacement = "^";
+            else if (type.includes("end"))
+                replacement = "$";
+
+            if (type === "inline flags") 
                 flags.push(...getFlags(fullMatch))
-                replacement = "";
-            }
 
             console.log(fullMatch);
 
@@ -57,13 +66,13 @@ function PTSRegex(pattern: string) {
         }
     }
 
-    const regex = new RegExp(pattern, [...new Set(flags)].join())
+    const regex = new RegExp(cleanPattern(pattern), [...new Set(flags)].join(""))
     
     return { regex, removals };
 }
 
-// const example = PTSRegex("(?P=username)");
-// console.log(example);
+const example = glamm("(?ism)");
+console.log(example);
 
 function replaceGroupName(pattern: string) {
     const pTag = pattern.indexOf("P");
@@ -102,10 +111,29 @@ function replacePossessiveQuantifiers(pattern: string) {
 }
 
 function getFlags(pattern: string) {
-    // Need to somehow differentiate the flag signs and simple characters
     const flags = pattern.match(/[auismLx]/g)
         ?.filter((flag) => !["a", "L", "x"].includes(flag));
 
     // This way we get rid of same flags
     return [...new Set(flags)];
+}
+
+function cleanPattern(pattern: string) {
+    const regex = /\(([^()]*)\)/g;
+    let match;
+
+    while ((match = regex.exec(pattern)) !== null) {
+        const insideParentheses = match[1]!;
+
+        if (/^\\k<[^>]+>$/.test(insideParentheses)) {
+            pattern = pattern.replace(match[0], insideParentheses);
+            regex.lastIndex = 0;
+        } else if (/^$/.test(insideParentheses)) {
+            // remove parenthesis if they are empty
+            pattern = pattern.replace(match[0], insideParentheses);
+            regex.lastIndex = 0;
+        }
+    }
+
+    return pattern;
 }

@@ -1,0 +1,22 @@
+{
+  "name": "glamm",
+  "version": "1.0.0",
+  "description": "Python regular expressions to JavaScript regex",
+  "homepage": "https://github.com/verg87/glamm#readme",
+  "bugs": {
+    "url": "https://github.com/verg87/glamm/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/verg87/glamm.git"
+  },
+  "license": "ISC",
+  "author": "verg87",
+  "type": "module",
+  "main": "compiler.js",
+  "types": "./compiler.d.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "tsc && node compiler"
+  }
+}

@@ -1,36 +1,38 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function PTSRegex(pattern) {
+function glamm(pattern) {
     const pythonSyntax = {
-        "group name": [/\?P<[^>]+>/g, ""], // maybe need to change the [^>] part
-        "group reference": [/\?P=[^\?\+\*\s<>\!]+/g, ""],
-        "possessive quantifiers": [/.(\?|\*|\+)\+/g, ""],
-        "possessive braces": [/\{\d+\s*,\s*\d+\}\+/g, ""],
-        "inline flags": [/\?[auismLx]+/g, ""],
-        "beginning of the string": [/\\A/g, "^"],
-        "end of the string": [/\\(Z|z)/g, "$"],
+        "group name": /\?P<[^>]+>/g, // maybe need to change the [^>] part
+        "group reference": /\?P=[^\?\+\*\s<>\!\)\()]+/g,
+        "possessive quantifiers": /.(\?|\*|\+)\+/g,
+        "possessive braces": /\{\d+\s*,\s*\d+\}\+/g,
+        "beginning of the string": /\\A/g,
+        "end of the string": /\\(Z|z)/g,
+        "inline flags": /\?[auismLx]+/g,
+        "inline comments": /\?#[^\)]*/g,
     };
     const removals = [];
     const flags = [];
-    for (const [type, info] of Object.entries(pythonSyntax)) {
-        let [regex, replacement] = info;
+    for (const [type, regex] of Object.entries(pythonSyntax)) {
+        let replacement;
         let match;
         while ((match = regex.exec(pattern))) {
             if (match.index === undefined)
                 continue;
             const fullMatch = match[0];
+            replacement = "";
             if (type === "group name")
                 replacement = replaceGroupName(fullMatch);
-            if (type === "group reference")
+            else if (type === "group reference")
                 replacement = replaceGroupReference(fullMatch);
-            if (type === "possessive braces")
+            else if (type === "possessive braces")
                 replacement = replacePossessiveBraces(fullMatch);
-            if (type === "possessive quantifiers")
+            else if (type === "possessive quantifiers")
                 replacement = replacePossessiveQuantifiers(fullMatch);
-            if (type === "inline flags") {
+            else if (type.includes("beginning"))
+                replacement = "^";
+            else if (type.includes("end"))
+                replacement = "$";
+            if (type === "inline flags")
                 flags.push(...getFlags(fullMatch));
-                replacement = "";
-            }
             console.log(fullMatch);
             removals.push({
                 position: match.index,
@@ -41,10 +43,10 @@ function PTSRegex(pattern) {
             regex.lastIndex = match.index + replacement.length;
         }
     }
-    const regex = new RegExp(pattern, [...new Set(flags)].join());
+    const regex = new RegExp(cleanPattern(pattern), [...new Set(flags)].join(""));
     return { regex, removals };
 }
-const example = PTSRegex("(?P=username)");
+const example = glamm("(?ism)");
 console.log(example);
 function replaceGroupName(pattern) {
     const pTag = pattern.indexOf("P");
@@ -79,4 +81,22 @@ function getFlags(pattern) {
     // This way we get rid of same flags
     return [...new Set(flags)];
 }
+function cleanPattern(pattern) {
+    const regex = /\(([^()]*)\)/g;
+    let match;
+    while ((match = regex.exec(pattern)) !== null) {
+        const insideParentheses = match[1];
+        if (/^\\k<[^>]+>$/.test(insideParentheses)) {
+            pattern = pattern.replace(match[0], insideParentheses);
+            regex.lastIndex = 0;
+        }
+        else if (/^$/.test(insideParentheses)) {
+            // remove parenthesis if they are empty
+            pattern = pattern.replace(match[0], insideParentheses);
+            regex.lastIndex = 0;
+        }
+    }
+    return pattern;
+}
+export {};
 //# sourceMappingURL=compiler.js.map
