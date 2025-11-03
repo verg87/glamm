@@ -35,7 +35,6 @@ console.log(regex);
 2.  **Clone the repository:**
     ```bash
     git clone https://github.com/verg87/glamm.git
-    cd glamm
     ```
 3.  **Install dependencies:**
     ```bash
