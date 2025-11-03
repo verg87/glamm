@@ -1,6 +1,6 @@
 export function glamm(pattern) {
     const pythonSyntax = {
-        "group name": /\?P<[^>]+>/g, // maybe need to change the [^>] part
+        "group name": /\?P<[^>]+>/g,
         "group reference": /\?P=[^\?\+\*\s<>\!\)\()]+/g,
         "possessive quantifiers": /.(\?|\*|\+)\+/g,
         "possessive braces": /\{\d+\s*,\s*\d+\}\+/g,
@@ -33,35 +33,41 @@ export function glamm(pattern) {
                 replacement = "$";
             if (type === "inline flags")
                 flags.push(...getFlags(fullMatch));
-            console.log(fullMatch);
             removals.push({
                 position: match.index,
                 removed: fullMatch,
-                replaceWith: replacement
+                replaceWith: replacement,
             });
-            pattern = pattern.slice(0, match.index) + replacement + pattern.slice(match.index + fullMatch.length);
+            pattern =
+                pattern.slice(0, match.index) +
+                    replacement +
+                    pattern.slice(match.index + fullMatch.length);
             regex.lastIndex = match.index + replacement.length;
         }
     }
     const regex = new RegExp(cleanPattern(pattern), [...new Set(flags)].join(""));
     return { regex, removals };
 }
-// const example = glamm("(?P<username>\\w+), (?P=username)@gmail.com");
-// console.log(example);
 function replaceGroupName(pattern) {
     const pTag = pattern.indexOf("P");
     return pattern.slice(0, pTag) + pattern.slice(pTag + 1, pattern.length + 1);
 }
 function replaceGroupReference(pattern) {
     const questionSign = pattern.indexOf("?");
-    pattern = pattern.slice(0, questionSign) + pattern.slice(questionSign + 3, pattern.length + 1);
+    pattern =
+        pattern.slice(0, questionSign) +
+            pattern.slice(questionSign + 3, pattern.length + 1);
     return `\\k<${pattern}>`;
 }
 function replacePossessiveBraces(pattern) {
     const plusSign = pattern.indexOf("+");
-    pattern = pattern.slice(0, plusSign) + pattern.slice(plusSign + 1, pattern.length + 1);
+    pattern =
+        pattern.slice(0, plusSign) +
+            pattern.slice(plusSign + 1, pattern.length + 1);
     const minQuantifier = pattern.match(/(?<=\{)\d+\s*,\s*/);
-    pattern = pattern.slice(0, minQuantifier.index) + pattern.slice(minQuantifier[0].length + 1, pattern.length + 1);
+    pattern =
+        pattern.slice(0, minQuantifier.index) +
+            pattern.slice(minQuantifier[0].length + 1, pattern.length + 1);
     return pattern;
 }
 function replacePossessiveQuantifiers(pattern) {
@@ -75,7 +81,8 @@ function replacePossessiveQuantifiers(pattern) {
     return `(?=(${char}+))(?!\\1${char}+)\\1`;
 }
 function getFlags(pattern) {
-    const flags = pattern.match(/[auismLx]/g)
+    const flags = pattern
+        .match(/[auismLx]/g)
         ?.filter((flag) => !["a", "L", "x"].includes(flag));
     // This way we get rid of same flags
     return [...new Set(flags)];

@@ -3,25 +3,25 @@ interface PythonSyntaxMap {
 }
 
 interface Removals {
-    position: number,
-    removed: string,
-    replaceWith: string
+    position: number;
+    removed: string;
+    replaceWith: string;
 }
 
 interface GlammOutput {
     regex: RegExp;
-    removals: Removals[]
+    removals: Removals[];
 }
 
 export function glamm(pattern: string): GlammOutput {
     const pythonSyntax: PythonSyntaxMap = {
-        "group name": /\?P<[^>]+>/g, // maybe need to change the [^>] part
+        "group name": /\?P<[^>]+>/g, 
         "group reference": /\?P=[^\?\+\*\s<>\!\)\()]+/g,
         "possessive quantifiers": /.(\?|\*|\+)\+/g,
         "possessive braces": /\{\d+\s*,\s*\d+\}\+/g,
-        "beginning of the string": /\\A/g, 
-        "end of the string": /\\(Z|z)/g, 
-        "inline flags": /\?[auismLx]+/g, 
+        "beginning of the string": /\\A/g,
+        "end of the string": /\\(Z|z)/g,
+        "inline flags": /\?[auismLx]+/g,
         "inline comments": /\?#[^\)]*/g,
     };
 
@@ -37,7 +37,7 @@ export function glamm(pattern: string): GlammOutput {
             const fullMatch = match[0];
             replacement = "";
 
-            if (type === "group name")
+            if (type === "group name") 
                 replacement = replaceGroupName(fullMatch);
             else if (type === "group reference")
                 replacement = replaceGroupReference(fullMatch);
@@ -45,34 +45,29 @@ export function glamm(pattern: string): GlammOutput {
                 replacement = replacePossessiveBraces(fullMatch);
             else if (type === "possessive quantifiers")
                 replacement = replacePossessiveQuantifiers(fullMatch);
-            else if (type.includes("beginning"))
-                replacement = "^";
-            else if (type.includes("end"))
-                replacement = "$";
+            else if (type.includes("beginning")) replacement = "^";
+            else if (type.includes("end")) replacement = "$";
 
-            if (type === "inline flags") 
-                flags.push(...getFlags(fullMatch))
-
-            console.log(fullMatch);
+            if (type === "inline flags") flags.push(...getFlags(fullMatch));
 
             removals.push({
                 position: match.index,
                 removed: fullMatch,
-                replaceWith: replacement
+                replaceWith: replacement,
             });
 
-            pattern = pattern.slice(0, match.index) + replacement + pattern.slice(match.index + fullMatch.length);
+            pattern =
+                pattern.slice(0, match.index) +
+                replacement +
+                pattern.slice(match.index + fullMatch.length);
             regex.lastIndex = match.index + replacement.length;
         }
     }
 
-    const regex = new RegExp(cleanPattern(pattern), [...new Set(flags)].join(""))
-    
+    const regex = new RegExp(cleanPattern(pattern), [...new Set(flags)].join(""));
+
     return { regex, removals };
 }
-
-// const example = glamm("(?P<username>\\w+), (?P=username)@gmail.com");
-// console.log(example);
 
 function replaceGroupName(pattern: string) {
     const pTag = pattern.indexOf("P");
@@ -83,17 +78,23 @@ function replaceGroupName(pattern: string) {
 function replaceGroupReference(pattern: string) {
     const questionSign = pattern.indexOf("?");
 
-    pattern = pattern.slice(0, questionSign) + pattern.slice(questionSign + 3, pattern.length + 1);
+    pattern =
+        pattern.slice(0, questionSign) +
+        pattern.slice(questionSign + 3, pattern.length + 1);
 
     return `\\k<${pattern}>`;
 }
 
 function replacePossessiveBraces(pattern: string) {
     const plusSign = pattern.indexOf("+");
-    pattern = pattern.slice(0, plusSign) + pattern.slice(plusSign + 1, pattern.length + 1);
+    pattern =
+        pattern.slice(0, plusSign) +
+        pattern.slice(plusSign + 1, pattern.length + 1);
 
     const minQuantifier = pattern.match(/(?<=\{)\d+\s*,\s*/)!;
-    pattern = pattern.slice(0, minQuantifier.index) + pattern.slice(minQuantifier[0].length + 1, pattern.length + 1);
+    pattern =
+        pattern.slice(0, minQuantifier.index) +
+        pattern.slice(minQuantifier[0].length + 1, pattern.length + 1);
 
     return pattern;
 }
@@ -102,16 +103,15 @@ function replacePossessiveQuantifiers(pattern: string) {
     const char = pattern[0];
     const quantifierType = pattern[1];
 
-    if (quantifierType === "*")
-        return `${char}*(${char}*)(?!\\1${char}+)\\1`;
-    else if (quantifierType === "?")
-        return `${char}`
+    if (quantifierType === "*") return `${char}*(${char}*)(?!\\1${char}+)\\1`;
+    else if (quantifierType === "?") return `${char}`;
     // if quantifier type is +
     return `(?=(${char}+))(?!\\1${char}+)\\1`;
 }
 
 function getFlags(pattern: string) {
-    const flags = pattern.match(/[auismLx]/g)
+    const flags = pattern
+        .match(/[auismLx]/g)
         ?.filter((flag) => !["a", "L", "x"].includes(flag));
 
     // This way we get rid of same flags
