@@ -18,7 +18,7 @@
   "scripts": {
     "test": "vitest",
     "coverage": "vitest --coverage",
-    "start": "tsc && node compiler"
+    "start": "tsc && node src/compiler"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",

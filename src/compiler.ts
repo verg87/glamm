@@ -15,14 +15,14 @@ interface GlammOutput {
 
 export function glamm(pattern: string): GlammOutput {
     const pythonSyntax: PythonSyntaxMap = {
-        "group name": /\?P<[^>]+>/g, 
-        "group reference": /\?P=[^\?\+\*\s<>\!\)\()]+/g,
+        "group name": /(?<=\(.*)\?P<[^>]+>(?=.*\))/g, 
+        "group reference": /(?<=\(.*)\?P=[^\?\+\*\s<>\!\)\()]+(?=.*\))/g,
         "possessive quantifiers": /.(\?|\*|\+)\+/g,
         "possessive braces": /\{\d+\s*,\s*\d+\}\+/g,
         "beginning of the string": /\\A/g,
         "end of the string": /\\(Z|z)/g,
-        "inline flags": /\?[auismLx]+/g,
-        "inline comments": /\?#[^\)]*/g,
+        "inline flags": /(?<=\(.*)\?[auismLx]+(?=.*\))/g,
+        "inline comments": /(?<=\(.*)\?#[^\)]*(?=.*\))/g,
     };
 
     const removals: Removals[] = [];
