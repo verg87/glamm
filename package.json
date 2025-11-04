@@ -10,13 +10,20 @@
     "type": "git",
     "url": "git+https://github.com/verg87/glamm.git"
   },
-  "license": "ISC",
+  "license": "MIT",
   "author": "verg87",
   "type": "module",
   "main": "compiler.js",
   "types": "./compiler.d.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "vitest",
+    "coverage": "vitest --coverage",
     "start": "tsc && node compiler"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@vitest/coverage-v8": "^4.0.6",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.6"
   }
 }
