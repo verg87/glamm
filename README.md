@@ -45,3 +45,21 @@ console.log(regex);
     npm start
     ```
     This command will compile the TypeScript code and run the `compiler.js`.
+
+## Testing
+
+This project uses [Vitest](https://vitest.dev/) for testing. To run the tests, use the following command:
+
+```bash
+npm test
+```
+
+### Coverage
+
+To generate a test coverage report, run:
+
+```bash
+npm run coverage
+```
+
+This will create a `coverage` directory with a detailed report.

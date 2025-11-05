@@ -89,5 +89,13 @@ describe("glamm tests", () => {
 
         expect(String(regex)).toBe("/(bla bla )/");
         expect(removals.length).toBe(1);
-    })
+    });
+
+    test("should return the regex if it's already working in JavaScript", () => {
+        const pythonPattern = "a?, b+";
+        const { regex, removals } = glamm(pythonPattern);
+
+        expect(String(regex)).toBe("/a?, b+/");
+        expect(removals.length).toBe(0);
+    });
 });
