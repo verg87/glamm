@@ -34,7 +34,7 @@ console.log(regex);
 1.  **Prerequisites:** Make sure you have [Node.js](https://nodejs.org/) installed on your machine.
 2.  **Clone the repository:**
     ```bash
-    git clone https://github.com/verg87/glamm.git
+    npm install glamm
     ```
 3.  **Install dependencies:**
     ```bash
