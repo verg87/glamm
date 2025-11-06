@@ -19,7 +19,7 @@ Glamm currently supports the following conversions:
 Here's an example of how to use Glamm to convert a Python regex pattern:
 
 ```javascript
-import { glamm } from '.glamm/src/compiler.js';
+import { glamm } from "glamm";
 
 const pythonPattern = "(?i)(?P<username>\w+), (?P=username)@gmail.com";
 

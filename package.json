@@ -13,8 +13,14 @@
   "license": "MIT",
   "author": "verg87",
   "type": "module",
-  "main": "compiler.js",
-  "types": "./compiler.d.ts",
+  "main": "src/compiler.js",
+  "types": "src/compiler.d.ts",
+  "exports": {
+    ".": {
+      "import": "./src/compiler.js",
+      "require": "./src/compiler.js"
+    }
+  },
   "scripts": {
     "test": "vitest",
     "coverage": "vitest --coverage",

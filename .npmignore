@@ -1,0 +1,7 @@
+src/compiler.js.map
+src/compiler.d.ts
+src/compiler.d.ts.map
+node_modules
+coverage
+test
+.gitignore
