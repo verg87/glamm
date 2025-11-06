@@ -1,6 +1,6 @@
 {
   "name": "glamm",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Python regular expressions to JavaScript regex",
   "homepage": "https://github.com/verg87/glamm#readme",
   "bugs": {
